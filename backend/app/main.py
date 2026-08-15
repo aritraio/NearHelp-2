@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import auth, health, internal, sos, users, ws
+from app.api import ai, auth, health, internal, sos, users, ws
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 
@@ -43,6 +43,8 @@ def create_app() -> FastAPI:
     app.include_router(sos.router)
     app.include_router(internal.router)
     app.include_router(ws.router)
+    app.include_router(ai.router)
+    ai.register_sos_guidance_route(sos.router)
     return app
 
 

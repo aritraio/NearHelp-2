@@ -53,6 +53,16 @@ class Settings(BaseSettings):
     # Path to the Firebase service account JSON; empty = log-only push sender.
     fcm_service_account_file: str = ""
 
+    # --- AI pipeline (Phase 5) ----------------------------------------------------
+    # LLM: auto = gemini when a key exists, else disabled (fallback ladder).
+    llm_provider: str = "auto"  # auto | gemini | none
+    # Embedder: auto = minilm if installed → gemini if key → lexical (offline).
+    embedder: str = "auto"  # auto | minilm | gemini | lexical
+    gemini_embedding_model: str = "gemini-embedding-001"
+    embedding_dim: int = 384  # must match kb_chunks.embedding's vector(384)
+    # Below this top similarity, refuse to generate and serve the fallback line.
+    ai_similarity_threshold: float = 0.6
+
 
 @lru_cache
 def get_settings() -> Settings:

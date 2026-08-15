@@ -117,6 +117,33 @@ data class NearbyCount(val count: Int)
 data class WsTicket(val ticket: String, val expires_in: Int)
 
 @Serializable
+data class GuidanceStep(val text: String, val source: String)
+
+@Serializable
+data class GuidanceOut(
+    val sos_id: String,
+    val mode: String,
+    val steps: List<GuidanceStep> = emptyList(),
+    val summary: String = "",
+    val retrieved_refs: List<Map<String, String>> = emptyList(),
+    val prompt_version: String? = null,
+    val latency_ms: Int = 0,
+    val disclaimer: String = "",
+)
+
+@Serializable
+data class ClassificationOut(
+    val emergency_type: String,
+    val sub_type: String? = null,
+    val severity_score: Int,
+    val confidence: Double,
+    val recommended_radius_km: Double,
+    val suggested_responder_skills: List<String> = emptyList(),
+    val source: String = "heuristic",
+    val latency_ms: Int = 0,
+)
+
+@Serializable
 data class ChatMessageOut(
     val id: String,
     val sender_id: String? = null,

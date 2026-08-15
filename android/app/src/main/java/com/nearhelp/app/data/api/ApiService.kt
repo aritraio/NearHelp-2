@@ -78,6 +78,9 @@ interface ApiService {
     @GET("api/sos/{sos_id}/messages")
     suspend fun messages(@Path("sos_id") sosId: String): List<ChatMessageOut>
 
+    @GET("api/sos/{sos_id}/guidance")
+    suspend fun guidance(@Path("sos_id") sosId: String): GuidanceOut
+
     @PUT("api/sos/{sos_id}/resolve")
     suspend fun resolve(
         @Path("sos_id") sosId: String,

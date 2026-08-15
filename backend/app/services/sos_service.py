@@ -109,6 +109,13 @@ async def create_sos(
     await _notify_wave(session, event, wave=0, exclude={user.id})
     await session.commit()
     await session.refresh(event)
+
+    # AI runs as a PARALLEL job — never on the critical path (Architecture.md §1).
+    try:
+        pool = await get_arq_pool()
+        await pool.enqueue_job("ai_pipeline", str(event.id))
+    except Exception:
+        logger.exception("ai_pipeline enqueue failed for sos %s", event.id)
     return event, True
 
 

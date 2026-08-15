@@ -1,5 +1,6 @@
 """ORM models — importing this package registers every table on Base.metadata."""
 
+from app.models.ai_output import AiOutput
 from app.models.base import Base
 from app.models.device import UserDevice
 from app.models.kb import EMBEDDING_DIM, KbChunk
@@ -19,5 +20,6 @@ __all__ = [
     "SkillVerification",
     "TimelineEvent",
     "Message",
+    "AiOutput",
     "EMBEDDING_DIM",
 ]

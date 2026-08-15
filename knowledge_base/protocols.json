@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "note": "Seed corpus authored from standard public first-aid guidance (WHO International First Aid guidelines, Indian Red Cross / St. John style protocols, AHA-style CPR steps). Replace or extend with the official documents during Phase 5 corpus collection; every chunk carries its source label so provenance stays auditable.",
+  "procedures": [
+    {
+      "source": "Seed corpus — CPR/BLS (AHA-style)",
+      "procedure_name": "CPR for unresponsive adult",
+      "crisis_type": "medical",
+      "steps": [
+        "Check responsiveness: tap the shoulders and shout. If no response and no normal breathing, treat as cardiac arrest.",
+        "Call for an ambulance (108/112) immediately, or send a specific bystander to call and fetch an AED if available.",
+        "Place the person on their back on a firm surface. Kneel beside their chest.",
+        "Position your hands: heel of one hand on the center of the chest, other hand on top, arms straight.",
+        "Give 30 chest compressions: push hard and fast, about 5-6 cm deep, at 100-120 per minute. Let the chest rise fully between pushes.",
+        "Give 2 rescue breaths only if trained: tilt the head, lift the chin, seal your mouth over theirs, blow for 1 second each.",
+        "Continue cycles of 30 compressions and 2 breaths until an AED arrives, professional help takes over, or the person starts breathing.",
+        "If an AED arrives, turn it on and follow the voice prompts. Apply pads to the bare chest and deliver a shock when instructed.",
+        "Resume CPR immediately after every shock."
+      ]
+    },
+    {
+      "source": "Seed corpus — choking (Red Cross style)",
+      "procedure_name": "Choking adult severe airway obstruction",
+      "crisis_type": "medical",
+      "steps": [
+        "Ask: 'Are you choking?' If the person cannot speak, cough, or breathe, act immediately.",
+        "Call for an ambulance (108/112) or have a bystander call.",
+        "Give 5 back blows: stand to the side and slightly behind, support the chest with one hand, lean the person forward, and strike firmly between the shoulder blades with the heel of your hand.",
+        "Give 5 abdominal thrusts (Heimlich): stand behind, make a fist above the navel, grasp it with the other hand, and pull sharply inward and upward.",
+        "Alternate 5 back blows and 5 abdominal thrusts until the object clears or the person becomes unresponsive.",
+        "If the person becomes unresponsive, lower them to the floor and begin CPR, starting with compressions."
+      ]
+    },
+    {
+      "source": "Seed corpus — bleeding control",
+      "procedure_name": "Severe external bleeding",
+      "crisis_type": "medical",
+      "steps": [
+        "Call for an ambulance (108/112) for heavy bleeding that cannot be controlled quickly.",
+        "Wear gloves or use a plastic bag if available to protect yourself.",
+        "Expose the wound and apply firm, direct pressure with a sterile or clean cloth.",
+        "Do not remove soaked dressings; add new layers on top and keep pressing.",
+        "Elevate the injured limb above heart level if there is no suspected broken bone.",
+        "If bleeding continues through dressings, press on the pressure point above the wound and keep direct pressure on it.",
+        "Keep the person still, warm, and lying down; watch for pale, cold, clammy skin (shock) and reassure them until help arrives."
+      ]
+    },
+    {
+      "source": "Seed corpus — burns",
+      "procedure_name": "Thermal burns first aid",
+      "crisis_type": "medical",
+      "steps": [
+        "Stop the burning: remove the person from the heat source; smother flames with a blanket or water.",
+        "Cool the burn with cool running water for at least 10-20 minutes. Do not use ice or very cold water.",
+        "Remove jewellery and tight clothing near the burn before swelling starts, but do not peel off clothing stuck to the skin.",
+        "Cover the burn loosely with a clean, non-fluffy dressing or cling film laid lengthways.",
+        "Do not apply toothpaste, oil, butter, ointments, or ice to the burn.",
+        "Call an ambulance (108/112) for burns to the face, hands, feet, genitals, or any large or deep burn, and for any smoke inhalation or electrical burn."
+      ]
+    },
+    {
+      "source": "Seed corpus — snakebite (India national protocol style)",
+      "procedure_name": "Snakebite first response",
+      "crisis_type": "medical",
+      "steps": [
+        "Move the person away from the snake and keep everyone calm and still. Do not try to catch or kill the snake.",
+        "Call for an ambulance (108/112) immediately — snakebite needs hospital assessment and possible anti-venom.",
+        "Keep the bitten limb still and lower than the heart. Remove rings, watches, and tight clothing from the limb.",
+        "Do NOT cut, suck, or apply tourniquet, ice, or herbs to the bite. Do not give the person anything to eat or drink.",
+        "Lay the person down and reassure them; panic increases the spread of venom.",
+        "If breathing stops, begin CPR. Monitor breathing and consciousness continuously until the ambulance arrives."
+      ]
+    },
+    {
+      "source": "Seed corpus — seizure",
+      "procedure_name": "Seizure first aid",
+      "crisis_type": "medical",
+      "steps": [
+        "Stay calm and note the time the seizure started. Most seizures stop by themselves within 1-3 minutes.",
+        "Protect the person from injury: clear hard or sharp objects; place something soft under the head.",
+        "Do NOT restrain the person or put anything (spoon, fingers, cloth) in their mouth.",
+        "After shaking stops, roll the person onto their side (recovery position) to keep the airway clear.",
+        "Stay with them until fully alert and oriented. Call an ambulance (108/112) if the seizure lasts more than 5 minutes, repeats, or the person is injured, pregnant, or diabetic."
+      ]
+    },
+    {
+      "source": "Seed corpus — stroke recognition",
+      "procedure_name": "Suspected stroke FAST response",
+      "crisis_type": "medical",
+      "steps": [
+        "Check FAST: Face drooping on one side, Arm weakness or numbness, Speech difficulty, Time to call.",
+        "Call an ambulance (108/112) immediately — stroke treatment is time-critical. Note the exact time symptoms started.",
+        "Keep the person sitting or lying with head slightly raised. Do not give food, water, or medicines.",
+        "Loosen tight clothing and stay with the person, reassuring them.",
+        "If they become unresponsive and stop breathing normally, begin CPR."
+      ]
+    },
+    {
+      "source": "Seed corpus — heat illness",
+      "procedure_name": "Heat stroke response",
+      "crisis_type": "medical",
+      "steps": [
+        "Heat stroke is an emergency: hot skin (wet or dry), confusion, possible collapse. Call an ambulance (108/112).",
+        "Move the person to a cool, shaded place and remove excess clothing.",
+        "Cool aggressively: pour water over them, apply wet cloths or ice packs to neck, armpits, and groin, fan continuously.",
+        "If fully conscious and able to swallow, give small sips of water or oral rehydration solution.",
+        "Do not give medicines such as aspirin or paracetamol for heat stroke.",
+        "Monitor breathing and consciousness; begin CPR if needed."
+      ]
+    },
+    {
+      "source": "Seed corpus — poisoning",
+      "procedure_name": "Suspected poisoning response",
+      "crisis_type": "medical",
+      "steps": [
+        "Call for an ambulance (108/112) immediately, or poison control if available. Identify what was taken if safely possible.",
+        "Do NOT make the person vomit and do NOT give water, milk, or home remedies unless told by medical control.",
+        "If the chemical is on the skin, remove contaminated clothing and rinse with large amounts of water for 15-20 minutes.",
+        "Collect containers, labels, or vomit samples safely for the ambulance crew.",
+        "Keep the person sitting or lying on their side; monitor breathing and consciousness until help arrives."
+      ]
+    },
+    {
+      "source": "Seed corpus — allergic reaction",
+      "procedure_name": "Severe allergic reaction (anaphylaxis)",
+      "crisis_type": "medical",
+      "steps": [
+        "Look for swelling of lips/tongue, widespread rash, difficulty breathing, or faintness after exposure to a food, sting, or drug.",
+        "Call an ambulance (108/112) immediately — this is an emergency.",
+        "If the person carries an adrenaline auto-injector, help them use it: firm push into the outer thigh, hold as directed.",
+        "Lay the person flat with legs raised unless breathing is difficult; then let them sit up.",
+        "Loosen tight clothing and stay with them. A second auto-injector dose may be given after 5 minutes if no improvement.",
+        "Never leave the person alone, and never let them stand or walk suddenly."
+      ]
+    },
+    {
+      "source": "Seed corpus — road accident",
+      "procedure_name": "Road accident scene response",
+      "crisis_type": "accident",
+      "steps": [
+        "Make the scene safe first: park safely behind the crash, hazard lights on, and put on a reflective vest if available.",
+        "Call 108/112 with the exact location, number of vehicles, and visible injuries.",
+        "Do not move casualties unless there is immediate danger (fire, traffic) — suspected spine injury makes movement risky.",
+        "Turn the engine off and warn oncoming traffic; do not smoke near spilled fuel.",
+        "Check responsive casualties: control bleeding with direct pressure, keep them warm and still.",
+        "Unresponsive but breathing: clear the airway and place on their side. Not breathing: begin CPR.",
+        "Stay until emergency services arrive and hand over what you observed."
+      ]
+    },
+    {
+      "source": "Seed corpus — fire",
+      "procedure_name": "Fire emergency response",
+      "crisis_type": "fire",
+      "steps": [
+        "Call the fire service (101) and evacuate immediately if the fire is spreading. Never fight a large fire yourself.",
+        "Alert everyone: shout, knock on doors, activate the nearest fire alarm.",
+        "Stay low under smoke — cleanest air is near the floor. Cover your nose and mouth with a cloth.",
+        "Touch doors with the back of your hand before opening; if hot, use another route.",
+        "Once out, stay out. Never go back inside for belongings.",
+        "If clothing catches fire: STOP, DROP, and ROLL to smother flames; cool burns with running water.",
+        "Meet at a pre-agreed assembly point and account for everyone."
+      ]
+    },
+    {
+      "source": "Seed corpus — gas leak",
+      "procedure_name": "Gas leak response",
+      "crisis_type": "gas_leak",
+      "steps": [
+        "Do NOT operate electrical switches, lights, phones, or any spark source inside the building — including turning anything off.",
+        "Evacuate everyone immediately, leaving doors and windows open if possible to ventilate.",
+        "Once outside and away from the leak, call the gas emergency line or 112.",
+        "Do not smoke or use lighters near the area; keep bystanders back.",
+        "If anyone feels dizzy, nauseous, or drowsy, move them to fresh air and call an ambulance (108).",
+        "Do not re-enter until the gas company or fire service declares it safe."
+      ]
+    },
+    {
+      "source": "Seed corpus — electrocution",
+      "procedure_name": "Electrical injury response",
+      "crisis_type": "power",
+      "steps": [
+        "Do NOT touch the person while they are in contact with the electricity source.",
+        "Switch off the power at the mains or breaker if you can reach it safely. Otherwise call the electricity board or 112.",
+        "If the power is off (or the person is clear), check responsiveness and breathing; begin CPR if not breathing.",
+        "Electrical burns may look minor on the surface but be serious inside — all electrical injuries need hospital assessment. Call 108.",
+        "Cool visible burns with water and cover with a clean dressing; look for entry and exit wounds.",
+        "Keep the person lying down and monitored until the ambulance arrives."
+      ]
+    },
+    {
+      "source": "Seed corpus — flood (NDMA style)",
+      "procedure_name": "Flood safety response",
+      "crisis_type": "disaster",
+      "steps": [
+        "Move immediately to higher ground. Never walk, swim, or drive through moving flood water — 15 cm can sweep you off your feet.",
+        "Follow evacuation orders from authorities; take essentials and medicines, switch off electricity at the mains if safe.",
+        "Do not touch electrical equipment while standing in water.",
+        "Avoid contact with flood water where possible — it is often contaminated. Wash any exposed skin afterwards.",
+        "Drink only bottled or boiled/chlorinated water; assume well water is contaminated until tested.",
+        "Watch for debris, snakes, and open drains when moving through water. Help children, elderly, and disabled neighbours first."
+      ]
+    },
+    {
+      "source": "Seed corpus — earthquake (NDMA style)",
+      "procedure_name": "Earthquake response",
+      "crisis_type": "disaster",
+      "steps": [
+        "If indoors: DROP, COVER under sturdy furniture, and HOLD ON until shaking stops. Protect your head and neck.",
+        "Stay away from windows, glass, mirrors, and heavy objects that can fall.",
+        "Do not use elevators. If in bed, stay there and cover your head with a pillow.",
+        "If outdoors: move to open ground away from buildings, trees, and power lines.",
+        "When the shaking stops, evacuate via stairs, check for injuries, and expect aftershocks.",
+        "Turn off gas and electricity if you smell leaks or see damage; use phones only for emergencies.",
+        "Help trapped neighbours only if it is safe; call 112 for structural collapses."
+      ]
+    },
+    {
+      "source": "Seed corpus — security threat",
+      "procedure_name": "Violent threat / personal safety",
+      "crisis_type": "security",
+      "steps": [
+        "Your safety first: if you can leave the area safely, do so. Do not confront an attacker.",
+        "Call the police (112) as soon as it is safe; give the location, description, and direction of travel.",
+        "If you cannot leave, lock or barricade doors, silence phones, and stay away from windows.",
+        "Warn others nearby only if it does not put you at risk.",
+        "If someone is injured and the scene is safe, control bleeding with direct pressure and keep them still.",
+        "Remember details (appearance, vehicle, numbers) for the police; stay available as a witness."
+      ]
+    }
+  ]
+}

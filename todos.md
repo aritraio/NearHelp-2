@@ -159,27 +159,37 @@ Android token store to be worth it — Phase 3), admin verification review (Phas
 
 ## Phase 5 — AI Pipeline (Weeks 5–8, parallel track)
 
+> **Status (2026-08-16):** implemented. Every layer has an offline-capable
+> fallback (embedder: MiniLM → Gemini → deterministic lexical; LLM: Gemini →
+> heuristic/retrieval-only), so ingestion, retrieval, eval, and CI run with
+> zero keys and upgrade when `GEMINI_API_KEY` is set. Backend verified:
+> ruff/mypy clean (54 files), 40 tests passing locally (80 collected; DB suite
+> + AI eval run in CI — CI now ingests the corpus and gates on
+> `scripts.ai_eval`). Seed corpus: 17 procedures / ~120 step chunks (replace
+> with official WHO/Red Cross docs when collected — the golden set travels
+> with it).
+
 ### 5.1 Corpus & retrieval
-- [ ] Collect corpus: WHO first aid, Red Cross India, AHA CPR summaries, NDMA, snakebite protocol (P0)
-- [ ] Procedure-level chunker (200–400 tokens, step boundaries) + metadata (source, crisis_type, step) (P0)
-- [ ] MiniLM embedder → `kb_chunks` + HNSW index; ingestion script idempotent (P0)
-  - *AC: "cardiac arrest" query returns CPR steps in top-5*
-- [ ] Hybrid retrieval: pgvector + Postgres FTS merge (P1)
-- [ ] Golden set: 50–100 scenarios with expected type/severity/procedures (P0)
-- [ ] Eval harness `python -m ai.eval`: classification ≥ 85 %, precision@5 ≥ 80 %, faithfulness (P0)
-  - *AC: runs green in CI on corpus/prompt PRs*
+- [x] Collect corpus: WHO first aid, Red Cross India, AHA CPR summaries, NDMA, snakebite protocol (P0) — **seed corpus authored from standard public guidance, provenance-labeled; official documents still to be swapped in**
+- [x] Procedure-level chunker (200-400 tokens, step boundaries) + metadata (source, crisis_type, step) (P0) — `knowledge_base/protocols.json` → `scripts/ingest_kb.py`
+- [x] MiniLM embedder → `kb_chunks` + HNSW index; ingestion script idempotent (P0) — rebuild-from-file ingestion (idempotent by outcome); MiniLM optional (`requirements-ml.txt`), Gemini at 384 dims, lexical default offline
+  - *AC: "cardiac arrest" query returns CPR steps in top-5* — ✅ `test_ingest_and_retrieval_ac` (runs in CI)
+- [x] Hybrid retrieval: pgvector + Postgres FTS merge (P1) — Reciprocal Rank Fusion + crisis-type boost; RRF merge unit-tested
+- [x] Golden set: 50-100 scenarios with expected type/severity/procedures (P0) — 50 scenarios in `backend/ai_eval/golden.jsonl`
+- [x] Eval harness `python -m ai.eval`: classification ≥ 85 %, precision@5 ≥ 80 %, faithfulness (P0) — `python -m scripts.ai_eval`, exits non-zero on failure
+  - *AC: runs green in CI on corpus/prompt PRs* — ✅ CI step added (ingest + eval with the lexical/heuristic ladder)
 
 ### 5.2 Generation & guardrails
-- [ ] Classification + severity in one structured-output Gemini call (P0)
-- [ ] `LLMClient` abstraction (env-swappable provider) (P0)
-- [ ] Guidance prompt: mandatory citations, scope guardrails, user text as data not instructions (P0)
-- [ ] Fallback ladder: schema-retry → retrieval-only → client offline cache (P0)
-  - *AC: with Gemini key invalidated, guidance still served (flagged retrieval-only); SOS path latency unchanged*
-- [ ] Blocklist post-filter + guardrail unit tests in CI (P1)
-- [ ] Prompt versioning + `(prompt_version, output, refs)` logging (P1)
-- [ ] Wire AI into SOS path as parallel arq job; push "guidance ready" (P0)
-- [ ] Offline protocol cache bundled in app, rendered via GuidanceCard (P0)
-- [ ] Disclaimer strip on every guidance surface (P0)
+- [x] Classification + severity in one structured-output Gemini call (P0) — schema shared with the heuristic fallback; severity drives radius bands
+- [x] `LLMClient` abstraction (env-swappable provider) (P0) — `LLM_PROVIDER=auto|gemini|none` (ADR-14)
+- [x] Guidance prompt: mandatory citations, scope guardrails, user text as data not instructions (P1) — `prompts.py` v1, versioned and logged per output
+- [x] Fallback ladder: schema-retry → retrieval-only → client offline cache (P0)
+  - *AC: with Gemini key invalidated, guidance still served (flagged retrieval-only); SOS path latency unchanged* — ✅ `test_fallback_ladder_guidance_served_without_llm` (create < 2 s, guidance retrieval-only, event classified heuristically)
+- [x] Blocklist post-filter + guardrail unit tests in CI (P1) — `tests/test_ai_unit.py` (dosages/prescriptions/diagnosis/invasive; auto-injector exception)
+- [x] Prompt versioning + `(prompt_version, output, refs)` logging (P1) — `ai_outputs` table (migration 0005)
+- [x] Wire AI into SOS path as parallel arq job; push "guidance ready" (P0) — `ai_pipeline` worker job: classify → severity/radius → RAG → ai_outputs → timeline + WS `ai_guidance` + FCM cue
+- [x] Offline protocol cache bundled in app, rendered via GuidanceCard (P0) — `assets/offline_protocols.json` (10 priority protocols), served when the fetch fails
+- [x] Disclaimer strip on every guidance surface (P0) — `DisclaimerStrip` in GuidanceCard.kt, non-dismissible
 
 **Milestone 🏁 — Month-1-style exit (reprise, now with AI):** two-device demo where the responder receives **cited** CPR guidance seconds after the alert.
 

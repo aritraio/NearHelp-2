@@ -1,0 +1,50 @@
+{"text": "my father collapsed and is not breathing, no pulse", "crisis": "medical", "procedure": "CPR for unresponsive adult"}
+{"text": "man having a cardiac arrest in the market", "crisis": "medical", "procedure": "CPR for unresponsive adult"}
+{"text": "someone needs CPR right now", "crisis": "medical", "procedure": "CPR for unresponsive adult"}
+{"text": "elderly woman unconscious, heart stopped", "crisis": "medical", "procedure": "CPR for unresponsive adult"}
+{"text": "neighbor collapsed on the road, unresponsive and not breathing normally", "crisis": "medical", "procedure": "CPR for unresponsive adult"}
+{"text": "my friend is choking on food, cannot speak or breathe", "crisis": "medical", "procedure": "Choking adult severe airway obstruction"}
+{"text": "child swallowed a toy, choking, turning blue", "crisis": "medical", "procedure": "Choking adult severe airway obstruction"}
+{"text": "man clutching throat while eating, cannot cough", "crisis": "medical", "procedure": "Choking adult severe airway obstruction"}
+{"text": "deep cut on the arm, severe bleeding will not stop", "crisis": "medical", "procedure": "Severe external bleeding"}
+{"text": "he cut his hand with a knife, blood pouring out", "crisis": "medical", "procedure": "Severe external bleeding"}
+{"text": "accident victim bleeding heavily from the head", "crisis": "medical", "procedure": "Severe external bleeding"}
+{"text": "she spilled hot tea on her arm, skin is red and blistered", "crisis": "medical", "procedure": "Thermal burns first aid"}
+{"text": "child touched a hot stove, burnt his fingers", "crisis": "medical", "procedure": "Thermal burns first aid"}
+{"text": "kitchen fire burned my husband's hand", "crisis": "medical", "procedure": "Thermal burns first aid"}
+{"text": "snake bit my brother in the field, leg is swelling", "crisis": "medical", "procedure": "Snakebite first response"}
+{"text": "snakebite while farming, two puncture marks on ankle", "crisis": "medical", "procedure": "Snakebite first response"}
+{"text": "my son is having a seizure, shaking on the floor", "crisis": "medical", "procedure": "Seizure first aid"}
+{"text": "person having fits in the bus, convulsing", "crisis": "medical", "procedure": "Seizure first aid"}
+{"text": "grandmother's face is drooping and she cannot speak properly", "crisis": "medical", "procedure": "Suspected stroke FAST response"}
+{"text": "sudden weakness in arm and slurred speech, maybe a stroke", "crisis": "medical", "procedure": "Suspected stroke FAST response"}
+{"text": "worker collapsed in the sun, hot skin and confused", "crisis": "medical", "procedure": "Heat stroke response"}
+{"text": "heat stroke symptoms after working outside all day", "crisis": "medical", "procedure": "Heat stroke response"}
+{"text": "my child drank cleaning chemical from under the sink", "crisis": "medical", "procedure": "Suspected poisoning response"}
+{"text": "suspected poisoning, she swallowed some pills", "crisis": "medical", "procedure": "Suspected poisoning response"}
+{"text": "after eating peanuts his lips swelled and he cannot breathe well", "crisis": "medical", "procedure": "Severe allergic reaction (anaphylaxis)"}
+{"text": "bee sting, severe allergic reaction, swelling everywhere", "crisis": "medical", "procedure": "Severe allergic reaction (anaphylaxis)"}
+{"text": "chest pain and sweating for twenty minutes", "crisis": "medical", "procedure": "CPR for unresponsive adult"}
+{"text": "she fainted at the office, dizzy and pale", "crisis": "medical", "procedure": "Suspected stroke FAST response"}
+{"text": "two cars collided on the highway, people trapped", "crisis": "accident", "procedure": "Road accident scene response"}
+{"text": "bike accident at the junction, rider bleeding on the road", "crisis": "accident", "procedure": "Road accident scene response"}
+{"text": "truck crashed into a shop front", "crisis": "accident", "procedure": "Road accident scene response"}
+{"text": "serious road accident, vehicle overturned", "crisis": "accident", "procedure": "Road accident scene response"}
+{"text": "my kitchen is on fire, flames on the stove", "crisis": "fire", "procedure": "Fire emergency response"}
+{"text": "house fire spreading to next room, heavy smoke", "crisis": "fire", "procedure": "Fire emergency response"}
+{"text": "burning building, people still inside upstairs", "crisis": "fire", "procedure": "Fire emergency response"}
+{"text": "smell of gas in the kitchen, cylinder might be leaking", "crisis": "gas_leak", "procedure": "Gas leak response"}
+{"text": "gas leak from the LPG pipeline, strong smell everywhere", "crisis": "gas_leak", "procedure": "Gas leak response"}
+{"text": "worker touched a live wire and got an electric shock", "crisis": "power", "procedure": "Electrical injury response"}
+{"text": "man electrocuted by a fallen power line", "crisis": "power", "procedure": "Electrical injury response"}
+{"text": "broken transformer sparking on the street", "crisis": "power", "procedure": "Electrical injury response"}
+{"text": "water entering our street, flood rising fast", "crisis": "disaster", "procedure": "Flood safety response"}
+{"text": "flood water in the house, family stuck on the second floor", "crisis": "disaster", "procedure": "Flood safety response"}
+{"text": "strong earthquake shaking the building, things falling", "crisis": "disaster", "procedure": "Earthquake response"}
+{"text": "earthquake tremors, everyone running out of offices", "crisis": "disaster", "procedure": "Earthquake response"}
+{"text": "a man with a knife is threatening shopkeepers", "crisis": "security", "procedure": "Violent threat / personal safety"}
+{"text": "robbery in progress, armed attacker in the store", "crisis": "security", "procedure": "Violent threat / personal safety"}
+{"text": "someone is being assaulted outside the bar", "crisis": "security", "procedure": "Violent threat / personal safety"}
+{"text": "stranger stalking a schoolgirl, we fear an attack", "crisis": "security", "procedure": "Violent threat / personal safety"}
+{"text": "my water bottle leaked all over my bag and laptop", "crisis": "other", "procedure": null}
+{"text": "need help carrying groceries upstairs", "crisis": "other", "procedure": null}

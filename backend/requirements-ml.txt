@@ -1,0 +1,12 @@
+# NearHelp AI — optional ML extras
+
+# The default pipeline needs NONE of these: the lexical embedder keeps
+# ingestion/retrieval/eval fully offline. Install this file to upgrade
+# embeddings to in-process MiniLM (384-dim, matches the pgvector column):
+#
+#   pip install -r requirements-ml.txt
+#
+# Then set EMBEDDER=auto (or minilm) and re-run scripts/ingest_kb.py so the
+# corpus is re-embedded in the new space.
+
+sentence-transformers==3.0.1

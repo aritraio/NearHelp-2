@@ -162,7 +162,7 @@ fun IncidentScreen(
 
         Box(Modifier.weight(1f)) {
             when (tab) {
-                0 -> GuidancePlaceholder()
+                0 -> GuidancePlaceholder(state)
                 1 -> MapTab(state)
                 2 -> ChatTab(state, viewModel::sendMessage)
                 else -> TimelineTab(state)
@@ -204,24 +204,45 @@ fun IncidentScreen(
 }
 
 @Composable
-private fun GuidancePlaceholder() {
+private fun GuidancePlaceholder(state: IncidentViewModel.UiState) {
+    val guidance = state.guidance
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        GlassCard(Modifier.fillMaxWidth()) {
-            Text("AI guidance", fontWeight = FontWeight.Bold)
-            Text(
-                "Cited first-aid guidance from the WHO/Red Cross corpus arrives " +
-                    "with the AI pipeline (Phase 5). Until then: call 112 for " +
-                    "anything life-threatening.",
-                fontSize = 12.sp,
-                color = Text2,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Guidance", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            com.nearhelp.app.ui.components.ModePill(mode = guidance?.mode ?: "loading")
         }
+        guidance?.summary?.takeIf { it.isNotBlank() }?.let {
+            Text(it, fontSize = 12.sp, color = Text2)
+        }
+        if (guidance == null) {
+            Text("preparing guidance…", fontSize = 13.sp, color = Text2)
+        } else if (guidance.steps.isEmpty()) {
+            com.nearhelp.app.ui.components.GlassCard(Modifier.fillMaxWidth()) {
+                Text(
+                    "Please wait for professional medical help. Call 108 or 112 now.",
+                    fontSize = 15.sp,
+                    color = Text1,
+                )
+            }
+        } else {
+            guidance.steps.forEachIndexed { index, step ->
+                com.nearhelp.app.ui.components.GuidanceCard(
+                    index = index,
+                    text = step.text,
+                    source = step.source,
+                )
+            }
+        }
+        // Non-dismissible disclaimer on every guidance surface (proposal §13.4).
+        com.nearhelp.app.ui.components.DisclaimerStrip(
+            text = guidance?.disclaimer?.takeIf { it.isNotBlank() } ?: OFFLINE_DISCLAIMER,
+        )
     }
 }
 

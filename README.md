@@ -91,6 +91,20 @@ docker compose exec backend python -m scripts.test_gemini "man collapsed, not br
 Passes only when the model's JSON parses against the classification schema —
 the contract that later becomes `POST /api/ai/classify`.
 
+### AI pipeline (Phase 5)
+
+```bash
+docker compose exec backend python -m scripts.ingest_kb   # corpus → pgvector
+docker compose exec backend python -m scripts.ai_eval     # golden-set eval gate
+```
+
+Both run key-less: the lexical embedder + heuristic classifier keep everything
+offline, and `EMBEDDER`/`LLM_PROVIDER` upgrade to Gemini/MiniLM when
+configured (`.env.example` documents each). After creating an SOS, the worker's
+`ai_pipeline` job classifies it, stores cited guidance, and pushes it to the
+incident screen's Guidance tab; the Android app also bundles ten offline
+protocols as the last rung of the fallback ladder.
+
 ### Android app
 
 Open `android/` in **Android Studio** (it will configure Gradle), or from a
@@ -142,7 +156,8 @@ docker-compose.yml  Full local stack (db, redis, migrate, backend, worker)
 
 ## Phase status
 
-Phases 0–4 complete (setup, auth/profile, core SOS engine, Android MVP UI,
-real-time layer). See `todos.md` for per-item acceptance status and the
+Phases 0–5 complete (setup, auth/profile, SOS engine, Android UI, real-time
+layer, AI pipeline). See `todos.md` for per-item acceptance status and the
 remaining external-account steps (Firebase, Maps key, GCP, Gemini key).
-Next: Phase 5 — the AI pipeline (classification, severity, RAG guidance).
+Next: Phase 6 — trust/verification/admin, then Phase 7 — the Digital Twin
+simulator (built early per ADR-12).

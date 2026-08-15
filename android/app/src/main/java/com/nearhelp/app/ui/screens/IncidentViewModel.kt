@@ -17,11 +17,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
+
+const val OFFLINE_DISCLAIMER =
+    "Offline first-aid protocols for reference only — NOT medical advice. " +
+        "Always call emergency services (108/112) for serious emergencies."
 
 /**
  * Incident view, real-time edition (Phase 4): WebSocket channel with the
@@ -34,6 +41,7 @@ class IncidentViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val api: ApiService,
     private val socket: SosSocket,
+    private val json: Json,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -58,6 +66,8 @@ class IncidentViewModel @Inject constructor(
         val iArrived: Boolean = false,
         val livePositions: Map<String, LivePosition> = emptyMap(),
         val chat: List<ChatEntry> = emptyList(),
+        val guidance: com.nearhelp.app.data.api.GuidanceOut? = null,
+        val guidanceFromOfflineCache: Boolean = false,
         val wsConnected: Boolean = false,
         val callPrompt: Boolean = false,
         val error: String? = null,
@@ -90,14 +100,14 @@ class IncidentViewModel @Inject constructor(
             }
 
             socket.connect(sosId)
+            loadGuidance() // server guidance if ready; offline cache otherwise
             launch {
                 socket.state.collect { s ->
                     _state.value = _state.value.copy(wsConnected = s == SosSocket.State.CONNECTED)
                 }
             }
             launch {
-                socket.events.collect { handleEvent(it) }
-            }
+                socket.events.collect { handleEvent(it) }            }
 
             while (isActive) {
                 refresh()
@@ -130,8 +140,65 @@ class IncidentViewModel @Inject constructor(
                 _state.value = _state.value.copy(chat = _state.value.chat + entry)
             }
             "call_services_prompt" -> _state.value = _state.value.copy(callPrompt = true)
+            "ai_guidance" -> loadGuidance()
             "responder_accepted", "responder_arrived", "sos_resolved",
             "sos_expired", "escalation_wave" -> refresh()
+        }
+    }
+
+    /** Server guidance when reachable; bundled offline protocols otherwise
+     *  (improvements.md §1.2 rung 3 — guidance must survive a dead network). */
+    fun loadGuidance() {
+        viewModelScope.launch {
+            runCatching { api.guidance(sosId) }
+                .onSuccess { fetched ->
+                    if (fetched.steps.isNotEmpty()) {
+                        _state.value = _state.value.copy(
+                            guidance = fetched, guidanceFromOfflineCache = false,
+                        )
+                    }
+                }
+                .onFailure { serveOfflineGuidance() }
+            if (_state.value.guidance == null) serveOfflineGuidance()
+        }
+    }
+
+    private fun serveOfflineGuidance() {
+        val event = _state.value.event ?: return
+        runCatching {
+            val text = appContext.assets.open("offline_protocols.json")
+                .bufferedReader().readText()
+            val doc = json.parseToJsonElement(text).jsonObject
+            val procedures = doc["procedures"]!!.jsonArray
+            val crisis = event.crisis_type ?: "other"
+            val steps = mutableListOf<com.nearhelp.app.data.api.GuidanceStep>()
+            for (element in procedures) {
+                val procedure = element.jsonObject
+                val matches = procedure["crisis_type"]?.jsonPrimitive?.content == crisis ||
+                    crisis == "other"
+                if (!matches) continue
+                val name = procedure["procedure_name"]!!.jsonPrimitive.content
+                val source = procedure["source"]!!.jsonPrimitive.content
+                procedure["steps"]!!.jsonArray.forEachIndexed { index, step ->
+                    steps += com.nearhelp.app.data.api.GuidanceStep(
+                        text = step.jsonPrimitive.content,
+                        source = "$source — $name, step ${index + 1}",
+                    )
+                }
+                if (steps.isNotEmpty()) break // first matching procedure
+            }
+            if (steps.isNotEmpty()) {
+                _state.value = _state.value.copy(
+                    guidance = com.nearhelp.app.data.api.GuidanceOut(
+                        sos_id = sosId,
+                        mode = "offline_cache",
+                        steps = steps.take(8),
+                        summary = "Bundled offline protocol — no network required.",
+                        disclaimer = OFFLINE_DISCLAIMER,
+                    ),
+                    guidanceFromOfflineCache = true,
+                )
+            }
         }
     }
 

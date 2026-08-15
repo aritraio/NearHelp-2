@@ -43,6 +43,15 @@ jobs:
         env:
           DATABASE_URL_SYNC: postgresql+psycopg://nearhelp:nearhelp@localhost:5432/nearhelp
 
+      - name: Ingest knowledge base + AI eval (CI gate)
+        run: |
+          EMBEDDER=lexical python -m scripts.ingest_kb
+          EMBEDDER=lexical python -m scripts.ai_eval
+        env:
+          DATABASE_URL: postgresql+asyncpg://nearhelp:nearhelp@localhost:5432/nearhelp
+          EMBEDDER: lexical
+          LLM_PROVIDER: none
+
       - name: Lint (ruff)
         run: |
           ruff check app scripts tests alembic
