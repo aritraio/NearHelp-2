@@ -1,6 +1,7 @@
 package com.nearhelp.app.ui.screens
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,17 +12,31 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,12 +47,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
+import com.nearhelp.app.service.distanceMeters
 import com.nearhelp.app.ui.components.CategoryChip
 import com.nearhelp.app.ui.components.GlassCard
+import com.nearhelp.app.ui.components.HintPill
 import com.nearhelp.app.ui.crisisCategory
 import com.nearhelp.app.ui.theme.BgIncident
 import com.nearhelp.app.ui.theme.Blue
 import com.nearhelp.app.ui.theme.Green
+import com.nearhelp.app.ui.theme.GreenDeep
 import com.nearhelp.app.ui.theme.Red
 import com.nearhelp.app.ui.theme.RedDeep
 import com.nearhelp.app.ui.theme.Text1
@@ -45,9 +70,9 @@ import com.nearhelp.app.ui.theme.Text2
 import com.nearhelp.app.ui.theme.Text3
 
 /**
- * Incident status (Phase 3 slice of DESIGN.md §4.3): state banner, responder
- * list, timeline, escalation cues, resolve, and the wave-3 call-services
- * action. Live map/chat/streaming arrive with Phase 4.
+ * Incident Active (DESIGN.md §4.3): status header + escalation cues on top of
+ * the Guidance | Map | Chat | Timeline tabs (Guidance fills in Phase 5). The
+ * map degrades to a distance/ETA panel when no Maps key is configured.
  */
 @Composable
 fun IncidentScreen(
@@ -57,15 +82,14 @@ fun IncidentScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val event = state.event
+    var tab by remember { mutableIntStateOf(1) } // start on the map
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(BgIncident, Color(0xFFFDF7F6)))
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(BgIncident, Color(0xFFFDF7F6))),
+    ) {
+        Column(Modifier.padding(horizontal = 20.dp)) {
             if (event?.is_drill == true) {
                 Surface(color = Blue, shape = MaterialTheme.shapes.small) {
                     Text(
@@ -76,9 +100,8 @@ fun IncidentScreen(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     )
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
             }
-
             event?.let { ev ->
                 Text(
                     text = when (ev.status) {
@@ -87,18 +110,16 @@ fun IncidentScreen(
                         "resolved" -> "RESOLVED"
                         else -> ev.status.uppercase()
                     },
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (ev.status == "resolved") Green else RedDeep,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     CategoryChip(crisisCategory(ev.crisis_type))
+                    Spacer(Modifier.width(8.dp))
+                    HintPill(if (state.wsConnected) "live" else "reconnecting…")
                     Spacer(Modifier.weight(1f))
-                    Text(
-                        text = "wave ${ev.escalation_wave}",
-                        fontSize = 12.sp,
-                        color = Text2,
-                    )
+                    Text("wave ${ev.escalation_wave}", fontSize = 12.sp, color = Text2)
                 }
                 if (ev.status == "pending" && ev.escalation_wave > 0) {
                     Text(
@@ -107,86 +128,326 @@ fun IncidentScreen(
                         color = Text2,
                     )
                 }
-                if (ev.status == "pending" && ev.escalation_wave >= 3 && !ev.is_drill) {
-                    Spacer(Modifier.height(12.dp))
+                if ((state.callPrompt || ev.escalation_wave >= 3) && !ev.is_drill && ev.status != "resolved") {
+                    Spacer(Modifier.height(8.dp))
                     Button(
-                        onClick = { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))) },
+                        onClick = {
+                            context.startActivity(
+                                Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))
+                            )
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Red),
                         modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("CALL 112 / 108 NOW", fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-                GlassCard(Modifier.fillMaxWidth()) {
-                    Text("Responders (${ev.notified_count} notified)", fontWeight = FontWeight.Bold)
-                    ev.responders.forEach { responder ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(top = 8.dp),
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .height(8.dp)
-                                    .background(
-                                        when (responder.status) {
-                                            "accepted" -> Green
-                                            "acked" -> Blue
-                                            else -> Text3
-                                        },
-                                        MaterialTheme.shapes.extraSmall,
-                                    )
-                                    .fillMaxWidth(0.06f)
-                            )
-                            Text(
-                                text = " ${responder.name} — ${responder.status}",
-                                fontSize = 13.sp,
-                                color = Text1,
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-                GlassCard(Modifier.fillMaxWidth()) {
-                    Text("Timeline", fontWeight = FontWeight.Bold)
-                    state.timeline.reversed().take(12).forEach { item ->
-                        Text(
-                            text = "• ${item.event_type.replace('_', ' ')}",
-                            fontSize = 12.sp,
-                            color = Text2,
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
-                    }
+                    ) { Text("CALL 112 / 108 NOW", fontWeight = FontWeight.Bold) }
                 }
             } ?: Text("loading…", color = Text2)
-
             state.error?.let {
-                Text(it, color = RedDeep, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
-            }
-
-            Spacer(Modifier.weight(1f))
-            Spacer(Modifier.height(20.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f)) {
-                    Text(if (event?.status == "resolved") "DONE" else "BACK")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(it, color = RedDeep, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                    OutlinedButton(onClick = viewModel::dismissError) { Text("ok") }
                 }
-                if (state.iAmNotifiedResponder && !state.iAmResponder && event?.status == "pending") {
-                    Button(
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+
+        TabRow(selectedTabIndex = tab) {
+            listOf("Guidance", "Map", "Chat", "Timeline").forEachIndexed { index, label ->
+                Tab(
+                    selected = tab == index,
+                    onClick = { tab = index },
+                    text = { Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                )
+            }
+        }
+
+        Box(Modifier.weight(1f)) {
+            when (tab) {
+                0 -> GuidancePlaceholder()
+                1 -> MapTab(state)
+                2 -> ChatTab(state, viewModel::sendMessage)
+                else -> TimelineTab(state)
+            }
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+        ) {
+            OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f)) {
+                Text(if (event?.status == "resolved") "DONE" else "BACK")
+            }
+            if (event != null && event.status != "resolved") {
+                when {
+                    state.iAmResponder && !state.iArrived -> Button(
+                        onClick = viewModel::arrive,
+                        colors = ButtonDefaults.buttonColors(containerColor = Blue),
+                        modifier = Modifier.weight(1.4f),
+                    ) { Text("I'VE ARRIVED", fontWeight = FontWeight.Bold) }
+
+                    state.iAmNotifiedResponder && !state.iAmResponder -> Button(
                         onClick = { viewModel.respond() },
                         colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1.4f),
                     ) { Text("I'M RESPONDING", fontWeight = FontWeight.Bold) }
-                } else if (event != null && event.status != "resolved") {
-                    Button(
+
+                    else -> Button(
                         onClick = viewModel::resolve,
                         colors = ButtonDefaults.buttonColors(containerColor = Green),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1.4f),
                     ) { Text("RESOLVE", fontWeight = FontWeight.Bold) }
                 }
             }
-            Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun GuidancePlaceholder() {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
+        GlassCard(Modifier.fillMaxWidth()) {
+            Text("AI guidance", fontWeight = FontWeight.Bold)
+            Text(
+                "Cited first-aid guidance from the WHO/Red Cross corpus arrives " +
+                    "with the AI pipeline (Phase 5). Until then: call 112 for " +
+                    "anything life-threatening.",
+                fontSize = 12.sp,
+                color = Text2,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MapTab(state: IncidentViewModel.UiState) {
+    val event = state.event ?: return
+    val victim = LatLng(event.lat, event.lon)
+    val context = LocalContext.current
+    val mapsKeyPresent = remember {
+        runCatching {
+            val info = context.packageManager.getApplicationInfo(
+                context.packageName, PackageManager.GET_META_DATA,
+            )
+            val key = info.metaData?.getString("com.google.android.geo.API_KEY")
+            !key.isNullOrBlank() && key != "MISSING_MAPS_KEY"
+        }.getOrDefault(false)
+    }
+
+    // Nearest live responder → straight-line distance + walking ETA
+    // (improvements.md §2.5 — no Directions API on the critical path).
+    val nearest = state.livePositions.values.minOfOrNull {
+        distanceMeters(it.lat, it.lon, event.lat, event.lon)
+    }
+    val etaMinutes = nearest?.let { ((it / 1.4) / 60).toInt().coerceAtLeast(1) }
+
+    if (mapsKeyPresent) {
+        val camera = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(victim, 15f)
+        }
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = camera,
+            uiSettings = MapUiSettings(zoomControlsEnabled = true),
+        ) {
+            Marker(
+                state = rememberMarkerState(position = victim),
+                title = "Emergency",
+            )
+            state.livePositions.forEach { (id, position) ->
+                androidx.compose.runtime.key(id) {
+                    val latLng = LatLng(position.lat, position.lon)
+                    val markerState = rememberMarkerState(position = latLng)
+                    // rememberMarkerState pins the initial position — live
+                    // updates must be applied explicitly.
+                    LaunchedEffect(latLng) { markerState.position = latLng }
+                    Marker(
+                        state = markerState,
+                        title = position.name,
+                        snippet = "responding",
+                    )
+                }
+            }
+        }
+        LiveEtaCard(nearest, etaMinutes)
+    } else {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+        ) {
+            GlassCard(Modifier.fillMaxWidth()) {
+                Text("Live tracking", fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                if (nearest != null) {
+                    Text(
+                        "nearest responder: ${"%.0f".format(nearest)} m away " +
+                            "(~$etaMinutes min on foot)",
+                        fontSize = 14.sp,
+                        color = Text1,
+                    )
+                } else {
+                    Text("waiting for responder locations…", fontSize = 14.sp, color = Text2)
+                }
+                state.livePositions.forEach { (_, p) ->
+                    val d = distanceMeters(p.lat, p.lon, event.lat, event.lon)
+                    Text(
+                        "• ${p.name} — ${"%.0f".format(d)} m",
+                        fontSize = 12.sp,
+                        color = Text2,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+                Text(
+                    "add a Maps API key for the full map (README)",
+                    fontSize = 10.sp,
+                    color = Text3,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LiveEtaCard(nearest: Double?, etaMinutes: Int?) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = Color(0xE6FFFFFF),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Text(
+                text = if (nearest != null) {
+                    "nearest responder ${"%.0f".format(nearest)} m · ~$etaMinutes min"
+                } else {
+                    "waiting for responder locations…"
+                },
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Text1,
+                modifier = Modifier.padding(14.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChatTab(state: IncidentViewModel.UiState, onSend: (String) -> Unit) {
+    var input by remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(state.chat.size) {
+        if (state.chat.isNotEmpty()) listState.animateScrollToItem(state.chat.size - 1)
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items(state.chat, key = { it.id }) { message ->
+                ChatBubble(message)
+            }
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .imePadding(),
+        ) {
+            OutlinedTextField(
+                value = input,
+                onValueChange = { input = it },
+                placeholder = { Text("message…", fontSize = 13.sp) },
+                modifier = Modifier.weight(1f),
+                maxLines = 3,
+            )
+            Spacer(Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    onSend(input)
+                    input = ""
+                },
+                enabled = input.isNotBlank() && state.wsConnected,
+            ) { Text("SEND") }
+        }
+    }
+}
+
+@Composable
+private fun ChatBubble(message: IncidentViewModel.ChatEntry) {
+    Box(
+        Modifier.fillMaxWidth(),
+        contentAlignment = if (message.mine) Alignment.CenterEnd else Alignment.CenterStart,
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = if (message.mine) Blue.copy(alpha = 0.18f) else Color(0xCCFFFFFF),
+            modifier = Modifier.width(260.dp),
+        ) {
+            Column(Modifier.padding(10.dp)) {
+                Text(
+                    text = if (message.mine) "you" else message.senderName,
+                    fontSize = 10.sp,
+                    color = Text3,
+                )
+                Text(text = message.text, fontSize = 14.sp, color = Text1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimelineTab(state: IncidentViewModel.UiState) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
+        Text("Timeline", fontWeight = FontWeight.Bold, color = Text1)
+        state.timeline.reversed().forEach { item ->
+            val cue = when (item.event_type) {
+                "escalation_wave" -> " — search radius expanded"
+                "call_services_prompted" -> " — call 108/112 prompted"
+                "response_accepted" -> " — responder committed"
+                else -> ""
+            }
+            Row(Modifier.padding(top = 10.dp)) {
+                Box(
+                    Modifier
+                        .size(8.dp)
+                        .background(
+                            when (item.event_type) {
+                                "sos_resolved" -> Green
+                                "call_services_prompted" -> Red
+                                "escalation_wave" -> Blue
+                                else -> Text3
+                            },
+                            MaterialTheme.shapes.extraSmall,
+                        )
+                )
+                Text(
+                    text = "  ${item.event_type.replace('_', ' ')}$cue",
+                    fontSize = 13.sp,
+                    color = Text2,
+                )
+            }
         }
     }
 }

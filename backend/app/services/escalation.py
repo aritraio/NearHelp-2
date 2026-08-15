@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import constants as c
 from app.core.arq_pool import get_arq_pool
 from app.models.sos import Response, SosEvent
+from app.realtime import broadcast_safe
 from app.services import sos_service
 from app.services.geo import nearby_users
 from app.services.notify import get_push_sender
@@ -61,6 +62,7 @@ async def _expire_stale_pending(session: AsyncSession) -> int:
     expired_ids = result.scalars().all()
     for sos_id in expired_ids:
         await sos_service.record_timeline(session, sos_id, c.EVENT_SOS_EXPIRED)
+        broadcast_safe(sos_id, {"type": "sos_expired"})
     if expired_ids:
         await session.commit()
     return len(expired_ids)
@@ -148,6 +150,7 @@ async def _expand_and_notify(
         details={"wave": wave, "radius_m": new_radius, "notified": len(responder_ids)},
     )
     await session.commit()
+    broadcast_safe(event.id, {"type": "escalation_wave", "wave": wave, "radius_m": new_radius})
 
     try:
         pool = await get_arq_pool()
@@ -179,6 +182,7 @@ async def _prompt_call_services(session: AsyncSession) -> int:
         await sos_service.record_timeline(
             session, sos_id, c.EVENT_CALL_SERVICES_PROMPTED, details={"numbers": ["108", "112"]}
         )
+        broadcast_safe(sos_id, {"type": "call_services_prompt", "numbers": ["108", "112"]})
     if event_ids:
         await session.commit()
 

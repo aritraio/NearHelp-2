@@ -9,12 +9,22 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- Battery-kill mitigation for Indian OEMs (improvements.md §1.4). -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Responder location streaming while en route (Phase 4). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <application
         android:name=".NearHelpApp"
         android:allowBackup="false"
         android:label="NearHelp"
         android:theme="@style/Theme.NearHelp">
+
+        <!-- Replace with a real Maps key for live map tiles (README). Without
+             it the app still works — the incident screen falls back to the
+             distance/ETA panel instead of the map. -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="MISSING_MAPS_KEY" />
 
         <activity
             android:name=".MainActivity"
@@ -45,6 +55,13 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <!-- Streams the accepted responder's position over the SOS channel
+             with adaptive intervals (todos.md §4). -->
+        <service
+            android:name=".service.ResponderLocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
     </application>
 
 </manifest>

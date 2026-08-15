@@ -105,12 +105,17 @@ gradle wrapper               # once — generates gradlew (the wrapper JAR isn't
 The emulator reaches the local backend via `http://10.0.2.2:8000/` by default.
 For a physical device, build with `-PbaseUrl=http://<your-lan-ip>:8000/`.
 
-**Phase 3 MVP flow** (all in-app, backend via the API above): register → Home
-(hold-for-SOS) → crisis grid + 5-second cancel window → incident status with
-responder list, timeline, escalation cues and resolve; responder side gets the
-full-screen alert (hold-to-respond) via push or deep link; Profile has skill
-claims, the readiness indicator (notifications / location / battery), and the
-fake-GPS **demo mode** toggle for rehearsals.
+**Phase 3–4 MVP flow** (all in-app, backend via the API above): register → Home
+(hold-for-SOS) → crisis grid + 5-second cancel window → incident screen with
+**live tabs — Guidance / Map / Chat / Timeline**; responders get the
+full-screen alert (hold-to-respond) via push or deep link, stream their
+location while en route (adaptive foreground service), check in on arrival,
+and chat persists server-side. Profile has skill claims, the readiness
+indicator, and the fake-GPS **demo mode** toggle for rehearsals.
+
+**Maps key** — replace `MISSING_MAPS_KEY` in `android/app/src/main/AndroidManifest.xml`
+with a Google Maps key for map tiles; without it the incident screen shows the
+distance/ETA tracking panel instead (everything else works).
 
 **Firebase setup (push notifications)** — required for real FCM delivery:
 
@@ -137,8 +142,7 @@ docker-compose.yml  Full local stack (db, redis, migrate, backend, worker)
 
 ## Phase status
 
-Phases 0–3 complete (setup, auth/profile, core SOS engine, Android MVP UI) —
-see `todos.md` for the per-item acceptance status and the remaining
-external-account steps (Firebase, GCP, Gemini key) that require user sign-ups.
-Phase 3's compile gate is CI's `assembleDebug` (push required). Next: Phase 4
-(real-time WebSocket layer — live map, tracking, chat).
+Phases 0–4 complete (setup, auth/profile, core SOS engine, Android MVP UI,
+real-time layer). See `todos.md` for per-item acceptance status and the
+remaining external-account steps (Firebase, Maps key, GCP, Gemini key).
+Next: Phase 5 — the AI pipeline (classification, severity, RAG guidance).

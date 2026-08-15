@@ -113,6 +113,18 @@ data class TimelineEventOut(
 @Serializable
 data class NearbyCount(val count: Int)
 
+@Serializable
+data class WsTicket(val ticket: String, val expires_in: Int)
+
+@Serializable
+data class ChatMessageOut(
+    val id: String,
+    val sender_id: String? = null,
+    val sender_name: String = "unknown",
+    val text: String,
+    val created_at: String? = null,
+)
+
 /** Human-readable error body from FastAPI: {"detail": "..."}. */
 @Serializable
 data class ApiError(val detail: String? = null)

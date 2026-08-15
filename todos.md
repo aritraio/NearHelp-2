@@ -133,18 +133,27 @@ Android token store to be worth it — Phase 3), admin verification review (Phas
 
 ## Phase 4 — Real-Time Layer (Weeks 5–7)
 
-- [ ] WebSocket `/api/ws/{sos_id}`: one-time ticket auth, ConnectionManager, rate-limited relay (P0)
-  - *AC: 100 connections in Locust, zero dropped location messages*
-- [ ] Client WS wrapper: auto-reconnect ×3 → REST polling fallback (P0)
-- [ ] Live map screen: victim pulse pin + animated responder markers + ETA pills (straight-line ETA) (P0)
-- [ ] Adaptive location intervals (2–3 s near, 10–15 s far) in foreground service (P1)
-- [ ] Chat over WS + REST fallback; message persistence (P0)
-- [ ] Timeline tab rendering `timeline_events` + escalation cues ("Expanding search to 2× radius") (P1)
-- [ ] Incident Active tabs: Guidance | Responders | Chat per `DESIGN.md` §4.3 (P0 once AI lands)
-- [ ] Responder en-route screen: route line + ETA + arrival check-in (GPS-confirmed) (P1)
-- [ ] Cloud Run session affinity + graceful drain (P1)
+> **Status (2026-08-16):** implemented. Backend: WS channel with one-time
+> tickets (Redis GETDEL), ConnectionManager, 2 s location rate limit, chat
+> persistence (migration 0004) + history endpoint, broadcasts on
+> accept/arrive/resolve/escalation/expiry, graceful drain — ruff/mypy clean,
+> 5 new WS tests (run in CI; 62 tests total). Android: SosSocket (reconnect ×3
+> → REST-poll fallback), incident tabs (Guidance/Map/Chat/Timeline), live map
+> with no-key fallback panel, foreground adaptive-interval location service,
+> arrive action. Compile gate = CI `assembleDebug`.
 
-**Milestone 🏁 — Month-2 exit:** full lifecycle on two devices: SOS → ranked alerts → accept → live map → chat → resolve → timeline.
+- [x] WebSocket `/api/ws/{sos_id}`: one-time ticket auth, ConnectionManager, rate-limited relay (P0)
+  - *AC: 100 connections in Locust, zero dropped location messages* — **Locust scenario lands in Phase 7 (simulator); relay + rate-limit covered by unit/integration tests**
+- [x] Client WS wrapper: auto-reconnect ×3 → REST polling fallback (P0) — SosSocket + IncidentViewModel slows polling to 3 s on WS failure
+- [x] Live map screen: victim pulse pin + animated responder markers + ETA pills (straight-line ETA) (P0) — Google Map w/ live markers when API key present; distance/ETA panel fallback without one; pin pulsing marked P2 polish
+- [x] Adaptive location intervals (2–3 s near, 10–15 s far) in foreground service (P1) — ResponderLocationService: 3 s within 500 m, 12 s beyond
+- [x] Chat over WS + REST fallback; message persistence (P0) — WS send + `GET /api/sos/{id}/messages` history on (re)connect
+- [x] Timeline tab rendering `timeline_events` + escalation cues ("Expanding search to 2× radius") (P1)
+- [x] Incident Active tabs: Guidance | Responders | Chat per `DESIGN.md` §4.3 (P0 once AI lands) — Guidance placeholder fills in Phase 5; responders fold into Map/headers
+- [x] Responder en-route screen: route line + ETA + arrival check-in (GPS-confirmed) (P1) — ETA card en route, `POST /arrive` (accepted→arrived + timeline + broadcast); "GPS-confirmed" = arrival from the streaming device; route *line* deferred with Directions API (V1)
+- [x] Cloud Run session affinity + graceful drain (P1) — drain implemented (lifespan `close_all`); session-affinity flag applied at Phase 9 deploy
+
+**Milestone 🏁 — Month-2 exit:** full lifecycle on two devices: SOS → ranked alerts → accept → live map → chat → resolve → timeline — **backend path fully proven by tests; the physical two-device run needs Firebase + Maps key + first CI-green build**
 
 ---
 

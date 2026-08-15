@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import auth, health, internal, sos, users
+from app.api import auth, health, internal, sos, users, ws
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 
@@ -22,7 +22,9 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("shutdown")
     from app.db.session import get_engine
+    from app.realtime import manager
 
+    await manager.close_all()  # graceful WebSocket drain (todos.md §4)
     await get_engine().dispose()
 
 
@@ -40,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(users.router)
     app.include_router(sos.router)
     app.include_router(internal.router)
+    app.include_router(ws.router)
     return app
 
 

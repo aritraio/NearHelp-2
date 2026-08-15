@@ -19,6 +19,7 @@ from app.db.session import get_session
 from app.models.sos import Response, SosEvent
 from app.models.user import User
 from app.schemas.sos import (
+    MessageOut,
     ResolveRequest,
     ResponderOut,
     RespondOut,
@@ -201,6 +202,18 @@ async def respond_to_sos(
     return RespondOut(response_id=response.id, status=response.status)
 
 
+@router.post("/{sos_id}/arrive", response_model=RespondOut)
+async def arrive_on_scene(
+    sos_id: uuid.UUID,
+    user: User = Depends(current_user_with_rate_limit),
+    session: AsyncSession = Depends(get_session),
+) -> RespondOut:
+    """Accepted responder on scene (Phase 4): accepted → arrived + timeline."""
+    event = await _load_event_for_user(session, sos_id, user)
+    response = await sos_service.mark_arrived(session, event, user)
+    return RespondOut(response_id=response.id, status=response.status)
+
+
 @router.put("/{sos_id}/resolve", response_model=SosOut)
 async def resolve(
     sos_id: uuid.UUID,
@@ -254,4 +267,33 @@ async def timeline(
             created_at=row.created_at,
         )
         for row in rows
+    ]
+
+
+@router.get("/{sos_id}/messages", response_model=list[MessageOut])
+async def messages(
+    sos_id: uuid.UUID,
+    user: User = Depends(current_user_with_rate_limit),
+    session: AsyncSession = Depends(get_session),
+) -> list[MessageOut]:
+    """Chat history — the reconnect path after a WS drop (todos.md §4)."""
+    from app.models.message import Message
+
+    event = await _load_event_for_user(session, sos_id, user)
+    rows = await session.execute(
+        select(Message, User.name)
+        .join(User, User.id == Message.sender_id, isouter=True)
+        .where(Message.sos_event_id == event.id)
+        .order_by(Message.created_at.asc())
+        .limit(200)
+    )
+    return [
+        MessageOut(
+            id=message.id,
+            sender_id=message.sender_id,
+            sender_name=name or "unknown",
+            text=message.text,
+            created_at=message.created_at,
+        )
+        for message, name in rows
     ]

@@ -61,6 +61,7 @@ PENDING_EXPIRE_MINUTES = 15
 EVENT_SOS_CREATED = "sos_created"
 EVENT_RESPONDERS_NOTIFIED = "responders_notified"
 EVENT_RESPONSE_ACCEPTED = "response_accepted"
+EVENT_RESPONDER_ARRIVED = "responder_arrived"
 EVENT_SOS_RESOLVED = "sos_resolved"
 EVENT_SOS_EXPIRED = "sos_expired"
 EVENT_ESCALATION_WAVE = "escalation_wave"

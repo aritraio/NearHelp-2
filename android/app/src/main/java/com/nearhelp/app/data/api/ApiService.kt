@@ -69,6 +69,15 @@ interface ApiService {
     @POST("api/sos/{sos_id}/ack")
     suspend fun ack(@Path("sos_id") sosId: String): RespondOut
 
+    @POST("api/sos/{sos_id}/arrive")
+    suspend fun arrive(@Path("sos_id") sosId: String): RespondOut
+
+    @GET("api/sos/{sos_id}/ws-ticket")
+    suspend fun wsTicket(@Path("sos_id") sosId: String): WsTicket
+
+    @GET("api/sos/{sos_id}/messages")
+    suspend fun messages(@Path("sos_id") sosId: String): List<ChatMessageOut>
+
     @PUT("api/sos/{sos_id}/resolve")
     suspend fun resolve(
         @Path("sos_id") sosId: String,

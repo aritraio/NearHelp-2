@@ -24,6 +24,7 @@ from app.core.arq_pool import get_arq_pool
 from app.models.sos import Response, SosEvent
 from app.models.timeline import TimelineEvent
 from app.models.user import User
+from app.realtime import broadcast_safe
 from app.services.geo import nearby_users, point
 from app.services.ranking import rank_candidates, top_n_for_severity
 from app.services.trust import apply_delta
@@ -207,6 +208,37 @@ async def accept_response(session: AsyncSession, event: SosEvent, user: User) ->
     await record_timeline(session, event.id, c.EVENT_RESPONSE_ACCEPTED, actor_id=user.id)
     await session.commit()
     await session.refresh(response)
+    broadcast_safe(
+        event.id,
+        {"type": "responder_accepted", "responder_id": str(user.id), "name": user.name},
+    )
+    return response
+
+
+async def mark_arrived(session: AsyncSession, event: SosEvent, user: User) -> Response:
+    """Accepted responder on scene (Phase 4): accepted → arrived."""
+    response = await get_participation(session, event, user.id)
+    if response is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="you were not notified for this emergency",
+        )
+    if response.status == "arrived":
+        return response
+    if response.status != "accepted":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"cannot arrive from status {response.status}",
+        )
+
+    response.status = "arrived"
+    await record_timeline(session, event.id, c.EVENT_RESPONDER_ARRIVED, actor_id=user.id)
+    await session.commit()
+    await session.refresh(response)
+    broadcast_safe(
+        event.id,
+        {"type": "responder_arrived", "responder_id": str(user.id), "name": user.name},
+    )
     return response
 
 
@@ -247,4 +279,5 @@ async def resolve_sos(
 
     await session.commit()
     await session.refresh(event)
+    broadcast_safe(event.id, {"type": "sos_resolved", "resolved_by": str(user.id)})
     return event

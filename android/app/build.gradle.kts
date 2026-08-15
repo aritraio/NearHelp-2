@@ -79,6 +79,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.datastore.preferences)
     implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
     // Compiles standalone; inert until google-services.json + plugin are added
     // (README "Firebase setup") — see todos.md §0.3.
     implementation(libs.firebase.messaging)

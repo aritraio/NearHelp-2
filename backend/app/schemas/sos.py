@@ -62,3 +62,11 @@ class TimelineEventOut(BaseModel):
     actor_id: uuid.UUID | None
     details: dict[str, Any]
     created_at: datetime
+
+
+class MessageOut(BaseModel):
+    id: uuid.UUID
+    sender_id: uuid.UUID | None
+    sender_name: str
+    text: str
+    created_at: datetime
