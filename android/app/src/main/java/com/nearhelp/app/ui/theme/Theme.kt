@@ -24,6 +24,7 @@ fun NearHelpTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = CalmColors,
         typography = NearHelpTypography,
+        shapes = NearHelpShapes,
         content = content,
     )
 }

@@ -103,25 +103,31 @@ Android token store to be worth it — Phase 3), admin verification review (Phas
 
 ## Phase 3 — Android MVP UI (Weeks 3–5, overlaps backend; per `DESIGN.md`)
 
+> **Status (2026-08-16):** code complete — 33 Kotlin files (screens, VMs,
+> components, data/push/location layers). NOT yet compiled locally (no Android
+> SDK on the dev machine) — CI's `assembleDebug` job is the compile gate once
+> pushed. Push is inert until Firebase is configured (README has the 3-step
+> setup; the plugin lines are pre-staged as `// FIREBASE:` comments).
+
 ### 3.1 Design system (D0)
-- [ ] `colors.kt` / `Type.kt` / `Shapes.kt` tokens exactly per `DESIGN.md` §2 (P0)
-- [ ] `GlassCard`, `StatPill`, `QuickNavRow`, `CategoryTile/Chip` components (P0)
-- [ ] Mint gradient scaffold; state-driven backgrounds CALM/INCIDENT/RESPOND (P0)
+- [x] `colors.kt` / `Type.kt` / `Shapes.kt` tokens exactly per `DESIGN.md` §2 (P0)
+- [x] `GlassCard`, `StatPill`, `QuickNavRow`, `CategoryTile/Chip` components (P0)
+- [x] Mint gradient scaffold; state-driven backgrounds CALM/INCIDENT/RESPOND (P0) — Home=calm, Crisis countdown=incident, Alert=respond tints
 
 ### 3.2 Screens
-- [ ] Auth screens (login/register) with token storage + auto-refresh (P0)
-- [ ] Home: locality header, live responder stat, GPS footer, CHECK-IN expander (P0)
-- [ ] `SosHoldButton`: 3-s arc, haptics at 50 %/100 %, early-release shake (P0)
-- [ ] Crisis Select: address card + category grid (3×3) + CountdownBar (P0)
-- [ ] 5-s cancel window wired to idempotent create/cancel (P0)
-  - *AC: cancel within 5 s → no responders notified; after → event commits*
-- [ ] FCM receiver → full-screen Alert screen with Respond (hold) / Dismiss (P0)
-- [ ] Profile: skills + verification states + readiness indicator (P1)
-- [ ] Battery/optimization exemption flow + OEM autostart guidance (P1)
+- [x] Auth screens (login/register) with token storage + auto-refresh (P0) — DataStore session + single-flight `TokenAuthenticator` (401 → rotate refresh → retry once)
+- [x] Home: locality header, live responder stat, GPS footer, CHECK-IN expander (P0) — stat backed by new `GET /api/sos/nearby-count` (tested)
+- [x] `SosHoldButton`: 3-s arc, haptics at 50 %/100 %, early-release shake (P0)
+- [x] Crisis Select: address card + category grid (3×3) + CountdownBar (P0)
+- [x] 5-s cancel window wired to idempotent create/cancel (P0)
+  - *AC: cancel within 5 s → no responders notified; after → event commits* — cancel exits before any API call; commit sends ONE idempotency key held across the whole attempt (including retries)
+- [x] FCM receiver → full-screen Alert screen with Respond (hold) / Dismiss (P0) — data messages, full-screen-intent notification + `nearhelp://alert/…` deep link + foreground routing via PushRouter; DRILL banners; **inert until Firebase is set up**
+- [x] Profile: skills + verification states + readiness indicator (P1)
+- [x] Battery/optimization exemption flow + OEM autostart guidance (P1) — readiness row + one-tap `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (general OEM guidance noted in UI)
 
 ### 3.3 Demo armor (from `improvements.md` §5)
-- [ ] Fake-GPS dev setting: scripted responder route (P0 for demo)
-- [ ] Record full two-device walkthrough video (P0 — the backup demo)
+- [x] Fake-GPS dev setting: scripted responder route (P0 for demo) — Profile → "Demo mode"; LocationClient walks a scripted ~800 m approach toward Salt Lake, ignoring real GPS
+- [ ] Record full two-device walkthrough video (P0 — the backup demo) — **user action, after Firebase + two devices are up**
 
 ---
 

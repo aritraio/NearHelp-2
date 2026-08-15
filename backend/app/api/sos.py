@@ -9,7 +9,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from redis.asyncio import Redis
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import current_user_with_rate_limit
@@ -27,6 +27,7 @@ from app.schemas.sos import (
     TimelineEventOut,
 )
 from app.services import sos_service
+from app.services.geo import point
 
 router = APIRouter(prefix="/api/sos", tags=["sos"])
 
@@ -115,6 +116,34 @@ async def _load_responses(session: AsyncSession, sos_id: uuid.UUID) -> list[Resp
         response.responder_name = name  # type: ignore[attr-defined]
         result.append(response)
     return result
+
+
+@router.get("/nearby-count")
+async def nearby_responder_count(
+    lat: float,
+    lon: float,
+    radius_m: int = 2_000,
+    user: User = Depends(current_user_with_rate_limit),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, int]:
+    """Feeds the Home screen's 'N responders nearby' stat (DESIGN.md §4.1)."""
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180) or not (100 <= radius_m <= 10_000):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="lat/lon out of range or radius_m outside 100-10000",
+        )
+    origin = point(lat, lon)
+    count = await session.scalar(
+        select(func.count())
+        .select_from(User)
+        .where(
+            User.id != user.id,
+            User.is_active.is_(True),
+            User.location.is_not(None),
+            func.ST_DWithin(User.location, origin, radius_m),
+        )
+    )
+    return {"count": int(count or 0)}
 
 
 @router.get("/active", response_model=list[SosOut])

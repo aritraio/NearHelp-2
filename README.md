@@ -105,6 +105,26 @@ gradle wrapper               # once — generates gradlew (the wrapper JAR isn't
 The emulator reaches the local backend via `http://10.0.2.2:8000/` by default.
 For a physical device, build with `-PbaseUrl=http://<your-lan-ip>:8000/`.
 
+**Phase 3 MVP flow** (all in-app, backend via the API above): register → Home
+(hold-for-SOS) → crisis grid + 5-second cancel window → incident status with
+responder list, timeline, escalation cues and resolve; responder side gets the
+full-screen alert (hold-to-respond) via push or deep link; Profile has skill
+claims, the readiness indicator (notifications / location / battery), and the
+fake-GPS **demo mode** toggle for rehearsals.
+
+**Firebase setup (push notifications)** — required for real FCM delivery:
+
+1. Create a Firebase project (todos.md §0.3), register an Android app with
+   package `com.nearhelp.app`, and drop `google-services.json` into `android/app/`.
+2. Uncomment the google-services plugin lines in `android/build.gradle.kts`
+   and `android/app/build.gradle.kts` (marked with `// FIREBASE:` comments).
+3. Put the service-account JSON at `secrets/firebase-service-account.json`
+   and set `FCM_SERVICE_ACCOUNT_FILE=./secrets/firebase-service-account.json`
+   in `.env` so the backend can send.
+
+Until then the app compiles and runs with push inert, and the backend's
+LogPushSender logs what would have been delivered.
+
 ## Repository layout
 
 ```
@@ -117,7 +137,8 @@ docker-compose.yml  Full local stack (db, redis, migrate, backend, worker)
 
 ## Phase status
 
-Phases 0–2 complete (setup, auth/profile, core SOS engine) — see `todos.md`
-for the per-item acceptance status and the remaining external-account steps
-(Firebase, GCP, Gemini key) that require user sign-ups. Next: Phase 3
-(Android MVP UI per `DESIGN.md`).
+Phases 0–3 complete (setup, auth/profile, core SOS engine, Android MVP UI) —
+see `todos.md` for the per-item acceptance status and the remaining
+external-account steps (Firebase, GCP, Gemini key) that require user sign-ups.
+Phase 3's compile gate is CI's `assembleDebug` (push required). Next: Phase 4
+(real-time WebSocket layer — live map, tracking, chat).

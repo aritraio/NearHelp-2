@@ -205,6 +205,33 @@ def test_drill_flag_stored_and_isolated(client, db_clean):
     assert body["is_drill"] is True
 
 
+def test_nearby_responder_count(client, db_clean):
+    """Home screen stat: counts other active users with a location in radius."""
+    victim, near, nurse, _ = _setup_scenario(client)
+    headers = auth_headers(victim["access_token"])
+    response = client.get(
+        "/api/sos/nearby-count",
+        headers=headers,
+        params={"lat": VICTIM["lat"], "lon": VICTIM["lon"], "radius_m": 2000},
+    )
+    assert response.status_code == 200
+    assert response.json()["count"] == 2  # near + nurse, self excluded
+
+    # Tightening the radius past the nurse drops the count to 1.
+    tight = client.get(
+        "/api/sos/nearby-count",
+        headers=headers,
+        params={"lat": VICTIM["lat"], "lon": VICTIM["lon"], "radius_m": 400},
+    )
+    assert tight.json()["count"] == 1
+
+    # Out-of-range radius is rejected before any query runs.
+    bad = client.get(
+        "/api/sos/nearby-count", headers=headers, params={"lat": 0, "lon": 0, "radius_m": 99}
+    )
+    assert bad.status_code == 422
+
+
 def run_sql_count(query: str) -> int:
     from sqlalchemy import text
 
