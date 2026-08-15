@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     # --- Certificates (Phase 1) -----------------------------------------------
     certificate_dir: str = "./data/certificates"
 
+    # --- SOS engine (Phase 2) ---------------------------------------------------
+    # Ranking weights (proposal §12.2) — swept by the ablation study (Phase 7).
+    ranking_w1_distance: float = 0.40
+    ranking_w2_skill: float = 0.35
+    ranking_w3_trust: float = 0.25
+    # Protects /internal/* endpoints (Cloud Scheduler sends this header).
+    internal_tick_secret: str = "dev-tick-secret"
+    # Path to the Firebase service account JSON; empty = log-only push sender.
+    fcm_service_account_file: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

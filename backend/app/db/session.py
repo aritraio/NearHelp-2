@@ -1,5 +1,6 @@
 """Async engine / session management — one engine per process (Architecture.md §9)."""
 
+import os
 from collections.abc import AsyncIterator
 from functools import lru_cache
 
@@ -15,7 +16,14 @@ from app.core.config import get_settings
 
 @lru_cache
 def get_engine() -> AsyncEngine:
-    return create_async_engine(get_settings().database_url, pool_pre_ping=True)
+    # DATABASE_POOL=null (tests): NullPool opens/closes a connection per
+    # checkout, so jobs run via asyncio.run never touch another loop's pool.
+    kwargs: dict = {}
+    if os.environ.get("DATABASE_POOL") == "null":
+        from sqlalchemy.pool import NullPool
+
+        kwargs["poolclass"] = NullPool
+    return create_async_engine(get_settings().database_url, pool_pre_ping=True, **kwargs)
 
 
 @lru_cache

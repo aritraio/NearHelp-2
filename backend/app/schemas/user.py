@@ -31,6 +31,11 @@ class FcmTokenRequest(BaseModel):
     fcm_token: str = Field(min_length=20, max_length=255)
 
 
+class LocationUpdateRequest(BaseModel):
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+
+
 class SkillClaimRequest(BaseModel):
     skill_type: str
 

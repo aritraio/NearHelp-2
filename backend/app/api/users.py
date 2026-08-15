@@ -1,9 +1,10 @@
-"""User profile endpoints (Phase 1).
+"""User profile endpoints (Phases 1-2).
 
 All routes require a Bearer access token and sit behind the per-user rate
 limit (100 req/min). FCM registration is multi-device: one row per
 (user, device) pair; skill claims create pending verification rows with the
-certificate stored via the storage service.
+certificate stored via the storage service. Location updates feed the geo
+query that makes a user discoverable as a nearby responder (Phase 2).
 """
 
 import uuid
@@ -20,10 +21,32 @@ from app.models.device import UserDevice
 from app.models.skills import SkillVerification
 from app.models.user import User
 from app.schemas.auth import UserOut
-from app.schemas.user import FcmTokenRequest, SkillVerificationOut, UserUpdateRequest
+from app.schemas.user import (
+    FcmTokenRequest,
+    LocationUpdateRequest,
+    SkillVerificationOut,
+    UserUpdateRequest,
+)
+from app.services.geo import point
 from app.services.storage import CertificateStorage, get_certificate_storage
 
 router = APIRouter(prefix="/api/users", tags=["users"])
+
+
+@router.put("/me/location", status_code=204)
+async def update_location(
+    body: LocationUpdateRequest,
+    user: User = Depends(current_user_with_rate_limit),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    """Publish the user's location for responder discoverability.
+
+    Privacy rule (Architecture.md §9): the retention job nulls this after
+    events resolve / on opt-out; between events it is the price of being
+    findable when someone nearby needs help.
+    """
+    user.location = point(body.lat, body.lon)
+    await session.commit()
 
 
 @router.get("/me", response_model=UserOut)

@@ -5,6 +5,7 @@ from app.models.device import UserDevice
 from app.models.kb import EMBEDDING_DIM, KbChunk
 from app.models.skills import SkillVerification
 from app.models.sos import Response, SosEvent
+from app.models.timeline import TimelineEvent
 from app.models.user import User
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "Response",
     "KbChunk",
     "SkillVerification",
+    "TimelineEvent",
     "EMBEDDING_DIM",
 ]

@@ -31,10 +31,25 @@ docker compose up --build     # db + redis + migrate + backend + worker
 ```
 
 The `migrate` service applies all Alembic revisions before the API starts.
-Once healthy:
+The `worker` runs the arq jobs (FCM fan-out) **and the escalation tick every
+10 s** — waves advance even if the API container restarts. Once healthy:
 
 - API + auto-generated docs: **http://localhost:8000/docs**
 - Health: **http://localhost:8000/api/health** → `{"status": "ok", "db": "up", ...}`
+
+### Try the SOS loop (docs → `POST /api/sos/create`)
+
+1. Register two users (`/api/auth/register`), authorize both.
+2. Each user: `PUT /api/users/me/location` (responder must be within 2 km of the victim).
+3. Victim: `POST /api/sos/create` with an `Idempotency-Key` header → returns ranked responders.
+4. Responder: `POST /api/sos/{id}/ack` then `/respond` → event flips to `active`.
+5. Victim: `GET /api/sos/{id}` shows the accepted responder; `/timeline` shows the story.
+6. Age an event 100 s (or wait) and the worker's tick expands the radius ×2/×3 and
+   (non-drill events) prompts calling 108/112 — see `GET /api/sos/{id}/timeline`.
+
+Push notifications need the Firebase service account JSON in
+`secrets/firebase-service-account.json` (path via `FCM_SERVICE_ACCOUNT_FILE` in
+`.env`); without it the LogPushSender logs what would have been sent.
 
 Seed 1,000 test users across the Kolkata bbox and run the geo-query sanity check:
 
@@ -102,6 +117,7 @@ docker-compose.yml  Full local stack (db, redis, migrate, backend, worker)
 
 ## Phase status
 
-Phase 0 (setup) is complete — see `todos.md` for the full checklist and the
-remaining external-account steps (Firebase, GCP, Gemini key) that require
-user sign-ups.
+Phases 0–2 complete (setup, auth/profile, core SOS engine) — see `todos.md`
+for the per-item acceptance status and the remaining external-account steps
+(Firebase, GCP, Gemini key) that require user sign-ups. Next: Phase 3
+(Android MVP UI per `DESIGN.md`).

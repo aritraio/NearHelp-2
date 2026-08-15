@@ -13,6 +13,9 @@ python-multipart==0.0.32  # multipart form / file upload support
 PyJWT==2.13.0
 bcrypt==5.0.0
 
+# Push notifications (Phase 2)
+firebase-admin==7.5.0
+
 # Database
 SQLAlchemy[asyncio]==2.0.52  # [asyncio] extra pulls greenlet for the async engine
 GeoAlchemy2==0.20.0        # PostGIS GEOGRAPHY(Point) columns

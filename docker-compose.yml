@@ -54,10 +54,16 @@ services:
       RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-100}
       AUTH_RATE_LIMIT_PER_MIN: ${AUTH_RATE_LIMIT_PER_MIN:-30}
       SOS_DAILY_LIMIT: ${SOS_DAILY_LIMIT:-10}
+      RANKING_W1_DISTANCE: ${RANKING_W1_DISTANCE:-0.40}
+      RANKING_W2_SKILL: ${RANKING_W2_SKILL:-0.35}
+      RANKING_W3_TRUST: ${RANKING_W3_TRUST:-0.25}
+      INTERNAL_TICK_SECRET: ${INTERNAL_TICK_SECRET:-dev-tick-secret}
+      FCM_SERVICE_ACCOUNT_FILE: ${FCM_SERVICE_ACCOUNT_FILE:-}
     ports:
       - "8000:8000"
     volumes:
       - certdata:/app/data
+      - ./secrets:/app/secrets:ro
     depends_on:
       db:
         condition: service_healthy
@@ -89,11 +95,17 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      RANKING_W1_DISTANCE: ${RANKING_W1_DISTANCE:-0.40}
+      RANKING_W2_SKILL: ${RANKING_W2_SKILL:-0.35}
+      RANKING_W3_TRUST: ${RANKING_W3_TRUST:-0.25}
+      FCM_SERVICE_ACCOUNT_FILE: ${FCM_SERVICE_ACCOUNT_FILE:-}
     depends_on:
       redis:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    volumes:
+      - ./secrets:/app/secrets:ro
 
 volumes:
   pgdata:
