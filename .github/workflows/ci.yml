@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (lint + types + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Start Postgres (PostGIS + pgvector)
+        working-directory: .
+        run: |
+          docker build -t nearhelp-db ./docker/postgres
+          docker run -d --name nearhelp-db -p 5432:5432 \
+            -e POSTGRES_USER=nearhelp -e POSTGRES_PASSWORD=nearhelp -e POSTGRES_DB=nearhelp nearhelp-db
+          for i in $(seq 1 30); do
+            docker exec nearhelp-db pg_isready -U nearhelp -d nearhelp && break || sleep 2
+          done
+          docker exec nearhelp-db pg_isready -U nearhelp -d nearhelp
+
+      - name: Start Redis
+        working-directory: .
+        run: docker run -d --name nearhelp-redis -p 6379:6379 redis:7-alpine
+
+      - name: Apply migrations
+        run: alembic upgrade head
+        env:
+          DATABASE_URL_SYNC: postgresql+psycopg://nearhelp:nearhelp@localhost:5432/nearhelp
+
+      - name: Lint (ruff)
+        run: |
+          ruff check app scripts tests alembic
+          ruff format --check app scripts tests alembic
+
+      - name: Type-check (mypy)
+        run: mypy
+
+      - name: Tests (pytest — integration tests hit the containers above)
+        run: pytest -q
+
+  android:
+    name: Android (assembleDebug)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # The repo ships without a Gradle wrapper JAR; CI installs Gradle directly.
+      # Locally, generate the wrapper once with `gradle wrapper` (see README).
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Build debug APK
+        run: gradle :app:assembleDebug --no-daemon

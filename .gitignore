@@ -1,0 +1,36 @@
+# --- Secrets / env ---
+.env
+*.key
+secrets/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# --- Node (admin dashboard, future) ---
+node_modules/
+
+# --- Android / Gradle ---
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.jks
+android/*.keystore
+android/captures/
+*.apk
+*.aab
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.swp
+.DS_Store

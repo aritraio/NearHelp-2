@@ -1,0 +1,29 @@
+# NearHelp AI — backend runtime dependencies (pinned at Phase 0 init; see tech-stack.md §10)
+# Python 3.12+
+
+# API
+fastapi==0.141.1
+uvicorn==0.52.3
+pydantic==2.13.4
+pydantic-settings==2.15.0
+email-validator==2.3.0     # EmailStr validation
+python-multipart==0.0.32  # multipart form / file upload support
+
+# Auth (Phase 1)
+PyJWT==2.13.0
+bcrypt==5.0.0
+
+# Database
+SQLAlchemy[asyncio]==2.0.52  # [asyncio] extra pulls greenlet for the async engine
+GeoAlchemy2==0.20.0        # PostGIS GEOGRAPHY(Point) columns
+asyncpg==0.31.0            # async driver (app runtime)
+psycopg[binary]==3.3.4     # sync driver (Alembic migrations only)
+pgvector==0.5.0            # vector(384) column type for the RAG corpus
+alembic==1.19.1            # migrations
+
+# Cache / queue
+redis==5.3.1
+arq==0.28.0                # async job worker (FCM fan-out, AI pipeline, retention)
+
+# AI
+google-genai==2.18.1       # Gemini client (wrapped behind the LLMClient interface)

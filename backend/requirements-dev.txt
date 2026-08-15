@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# Dev tooling
+pytest==9.1.1
+pytest-asyncio==1.4.0
+httpx==0.28.1              # transport for FastAPI's TestClient
+ruff==0.16.3
+mypy==2.3.1
+pre-commit==4.6.2
+fakeredis==2.37.0           # in-memory Redis for rate-limit / revocation tests

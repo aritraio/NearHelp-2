@@ -1,0 +1,100 @@
+# NearHelp AI — local development stack.
+# Matches the deployment topology in Architecture.md §12 (same image runs API,
+# migrations, and the arq worker). `cp .env.example .env` before first run.
+name: nearhelp
+
+services:
+  db:
+    build: ./docker/postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nearhelp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nearhelp}
+      POSTGRES_DB: ${POSTGRES_DB:-nearhelp}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nearhelp} -d ${POSTGRES_DB:-nearhelp}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  # One-shot: applies all Alembic revisions before the API/worker start.
+  migrate:
+    build: ./backend
+    environment:
+      DATABASE_URL_SYNC: postgresql+psycopg://${POSTGRES_USER:-nearhelp}:${POSTGRES_PASSWORD:-nearhelp}@db:5432/${POSTGRES_DB:-nearhelp}
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build: ./backend
+    environment:
+      ENV: ${ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-nearhelp}:${POSTGRES_PASSWORD:-nearhelp}@db:5432/${POSTGRES_DB:-nearhelp}
+      REDIS_URL: redis://redis:6379/0
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-100}
+      AUTH_RATE_LIMIT_PER_MIN: ${AUTH_RATE_LIMIT_PER_MIN:-30}
+      SOS_DAILY_LIMIT: ${SOS_DAILY_LIMIT:-10}
+    ports:
+      - "8000:8000"
+    volumes:
+      - certdata:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Same image, different entrypoint (Architecture.md §12): background jobs
+  # never compete with request latency on the API instance.
+  worker:
+    build: ./backend
+    command: arq app.worker.WorkerSettings
+    environment:
+      ENV: ${ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-nearhelp}:${POSTGRES_PASSWORD:-nearhelp}@db:5432/${POSTGRES_DB:-nearhelp}
+      REDIS_URL: redis://redis:6379/0
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  certdata:
