@@ -1,5 +1,6 @@
 package com.nearhelp.app.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +45,7 @@ fun AuthScreen(
     onAuthenticated: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
+    android.util.Log.d("NearHelp", "AuthScreen composing")
     val state by viewModel.state.collectAsStateWithLifecycle()
     var registerMode by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
@@ -57,6 +59,7 @@ fun AuthScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(BgNeutral)
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

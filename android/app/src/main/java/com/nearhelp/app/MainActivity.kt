@@ -47,23 +47,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NearHelpTheme {
-                NearHelpApp()
+                NearHelpRoot()
             }
         }
     }
 }
 
-@HiltViewModel
-class MainViewModel @Inject constructor(sessionStore: SessionStore) : ViewModel() {
-    /** null = still reading DataStore; true/false = session present/absent. */
-    val loggedIn: StateFlow<Boolean?> = sessionStore.isLoggedIn
-        .map { it as Boolean? }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-}
-
 @Composable
-fun NearHelpApp(viewModel: MainViewModel = hiltViewModel()) {
-    val loggedIn by viewModel.loggedIn.collectAsStateWithLifecycle()
+fun NearHelpRoot() {
     val navController = rememberNavController()
 
     // Foreground push routing: SOS alerts hop straight to the alert screen.
@@ -78,20 +69,18 @@ fun NearHelpApp(viewModel: MainViewModel = hiltViewModel()) {
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        when (loggedIn) {
-            null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            else -> AppNavHost(navController, startLoggedOut = loggedIn == false)
-        }
+        AppNavHost(
+            navController = navController,
+            startDestination = "auth",
+        )
     }
 }
 
 @Composable
-private fun AppNavHost(navController: NavHostController, startLoggedOut: Boolean) {
+private fun AppNavHost(navController: NavHostController, startDestination: String) {
     NavHost(
         navController = navController,
-        startDestination = if (startLoggedOut) "auth" else "home",
+        startDestination = startDestination,
     ) {
         composable("auth") {
             AuthScreen(

@@ -28,6 +28,16 @@ class AuthViewModel @Inject constructor(
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state
 
+    init {
+        viewModelScope.launch {
+            sessionStore.tokens.collect { tokens ->
+                if (tokens != null) {
+                    _state.value = UiState(loggedIn = true)
+                }
+            }
+        }
+    }
+
     fun login(email: String, password: String) = submit {
         val response = api.login(LoginRequest(email.trim().lowercase(), password))
         sessionStore.saveTokens(response.access_token, response.refresh_token)
@@ -56,7 +66,7 @@ class AuthViewModel @Inject constructor(
             401 -> "Invalid email or password"
             409 -> "An account with this email already exists"
             429 -> "Too many attempts — wait a minute"
-            else -> "Server error ($code)"
+            else -> "Server error (${code()})"
         }
         else -> "Network error — is the backend reachable?"
     }

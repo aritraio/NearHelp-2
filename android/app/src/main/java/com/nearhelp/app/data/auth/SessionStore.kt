@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
@@ -32,7 +33,16 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
         val DEMO_ROUTE = booleanPreferencesKey("demo_route_enabled")
     }
 
-    val tokens: Flow<SessionTokens?> = context.dataStore.data.map { prefs ->
+    private val safePrefs: Flow<androidx.datastore.preferences.core.Preferences> =
+        context.dataStore.data.catch { exception ->
+            if (exception is java.io.IOException) {
+                emit(androidx.datastore.preferences.core.emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+
+    val tokens: Flow<SessionTokens?> = safePrefs.map { prefs ->
         val access = prefs[Keys.ACCESS] ?: return@map null
         val refresh = prefs[Keys.REFRESH] ?: return@map null
         SessionTokens(access, refresh)
@@ -40,7 +50,7 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
 
     val isLoggedIn: Flow<Boolean> = tokens.map { it != null }
 
-    val demoRouteEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DEMO_ROUTE] ?: false }
+    val demoRouteEnabled: Flow<Boolean> = safePrefs.map { it[Keys.DEMO_ROUTE] ?: false }
 
     suspend fun saveTokens(access: String, refresh: String) {
         context.dataStore.edit {

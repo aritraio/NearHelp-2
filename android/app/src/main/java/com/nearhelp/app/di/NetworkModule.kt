@@ -82,6 +82,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("bare")
     fun bareApiService(@Named("bare") retrofit: Retrofit): ApiService =
         retrofit.create(ApiService::class.java)
 }

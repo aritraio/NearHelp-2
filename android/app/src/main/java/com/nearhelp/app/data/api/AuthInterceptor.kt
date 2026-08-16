@@ -7,7 +7,7 @@ import java.util.UUID
 
 /**
  * Request hygiene (Architecture.md §10):
- *  - attaches the Bearer token when we have one (never on /api/auth/* paths);
+ *  - attaches the Bearer token when we have one (never on /api/auth/ paths);
  *  - ensures every mutating request carries an Idempotency-Key — generated
  *    here ONLY when absent, so the SOS flow can hold one key across retries.
  */

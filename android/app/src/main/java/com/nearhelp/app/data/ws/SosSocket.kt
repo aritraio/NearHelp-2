@@ -39,7 +39,7 @@ class SosSocket @Inject constructor(
 
     enum class State { IDLE, CONNECTING, CONNECTED, FAILED }
 
-    private val _events = MutableSharedFlow<JsonObject>(extra = 32)
+    private val _events = MutableSharedFlow<JsonObject>(extraBufferCapacity = 32)
     val events: SharedFlow<JsonObject> = _events
 
     private val _state = MutableStateFlow(State.IDLE)

@@ -57,8 +57,8 @@ fun CrisisSelectScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                if (state.countdown != null) Brush.verticalGradient(BgIncident, BgIncident)
-                else Brush.verticalGradient(BgNeutral, BgNeutral)
+                if (state.countdown != null) Brush.verticalGradient(listOf(BgIncident, BgIncident))
+                else Brush.verticalGradient(listOf(BgNeutral, BgNeutral))
             )
             .verticalScroll(rememberScrollState())
             .padding(20.dp),

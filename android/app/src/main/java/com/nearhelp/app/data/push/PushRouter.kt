@@ -22,10 +22,10 @@ object PushRouter {
     data class CallServicesPrompt(val sosId: String)
 
     /** Emitted for every sos_alert data message (foreground routing). */
-    val alerts = MutableSharedFlow<SosAlert>(extra = 1)
+    val alerts = MutableSharedFlow<SosAlert>(extraBufferCapacity = 1)
 
     /** Wave-3 cue: victim should call 108/112. */
-    val callPrompts = MutableSharedFlow<CallServicesPrompt>(extra = 1)
+    val callPrompts = MutableSharedFlow<CallServicesPrompt>(extraBufferCapacity = 1)
 
     /** FCM registration token, refreshed by the service; UI uploads it. */
     val fcmToken = MutableStateFlow<String?>(null)

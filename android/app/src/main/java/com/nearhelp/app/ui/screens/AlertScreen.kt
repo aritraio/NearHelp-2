@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,7 +68,7 @@ fun AlertScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(BgRespond, Color(0xFFF4F8FE)))
+            .background(Brush.verticalGradient(listOf(BgRespond, Color(0xFFF4F8FE))))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

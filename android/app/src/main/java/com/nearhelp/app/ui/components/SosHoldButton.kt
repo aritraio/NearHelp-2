@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,7 @@ import com.nearhelp.app.ui.theme.Red
 import com.nearhelp.app.ui.theme.SurfaceGlass
 import com.nearhelp.app.ui.theme.Text1
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
@@ -55,6 +57,7 @@ fun SosHoldButton(
     ringColor: Color = Red,
 ) {
     val haptics = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
     val progress = remember { Animatable(0f) }
     val shake = remember { Animatable(0f) }
     var pressing by remember { mutableStateOf(false) }
@@ -97,11 +100,13 @@ fun SosHoldButton(
                     val early = progress.value < 1f
                     pressing = false
                     if (early) {
-                        for (i in 1..4) {
-                            shake.snapTo(if (i % 2 == 0) 12f else -12f)
-                            delay(35)
+                        scope.launch {
+                            for (i in 1..4) {
+                                shake.snapTo(if (i % 2 == 0) 12f else -12f)
+                                delay(35)
+                            }
+                            shake.snapTo(0f)
                         }
-                        shake.snapTo(0f)
                     }
                 }
             },

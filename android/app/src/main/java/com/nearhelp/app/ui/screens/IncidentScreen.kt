@@ -87,7 +87,7 @@ fun IncidentScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(BgIncident, Color(0xFFFDF7F6))),
+            .background(Brush.verticalGradient(listOf(BgIncident, Color(0xFFFDF7F6)))),
     ) {
         Column(Modifier.padding(horizontal = 20.dp)) {
             if (event?.is_drill == true) {
